@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Pizza Order Form</title>
+  <title>Pizza Order</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #fafafa; }
     h1, h2 { text-align: center; }
@@ -49,20 +49,7 @@
   <h1>Pizza Order</h1>
 
   <!-- Product Grid -->
-  <div id="itemsGrid" class="grid">
-    <!-- 33 placeholder products -->
-    <!-- Repeat with product names and different prices -->
-    <script>
-      const products = [];
-      for (let i = 1; i <= 33; i++) {
-        products.push({
-          name: "Pizza " + i,
-          prices: { standard: 8+i, large: 11+i, xlarge: 14+i },
-          img: "https://via.placeholder.com/200?text=Pizza+" + i
-        });
-      }
-    </script>
-  </div>
+  <div id="itemsGrid" class="grid"></div>
 
   <!-- Modal -->
   <div id="modalOverlay">
@@ -119,14 +106,24 @@
   </div>
 
 <script>
-  // Render products dynamically
+  // Generate 33 products
+  const products = [];
+  for (let i = 1; i <= 33; i++) {
+    products.push({
+      name: "Pizza " + i,
+      prices: { standard: 8+i, large: 11+i, xlarge: 14+i },
+      img: "https://via.placeholder.com/200?text=Pizza+" + i
+    });
+  }
+
+  // Render them into the grid
   const grid = document.getElementById("itemsGrid");
   products.forEach(p => {
     const div = document.createElement("div");
     div.className = "item";
     div.innerHTML = `
       <img src="${p.img}" alt="${p.name}">
-      <span>${p.name}</span><br>
+      <h4>${p.name}</h4>
       <button onclick='openModal("${p.name}", ${JSON.stringify(p.prices)})'>Order</button>
     `;
     grid.appendChild(div);
@@ -193,7 +190,7 @@
       items: currentOrder
     };
 
-    fetch(https://script.google.com/macros/s/AKfycbwQO4DL4SPd3JWB876_PIfzlKEqJ-6TtHjLFtlZarbe7rkmv4xBGiGezPErnF_2eTk0/exec, {
+    fetch("<<YOUR_WEB_APP_URL>>", {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": "application/json" },
