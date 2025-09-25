@@ -28,11 +28,12 @@
     }
     .modal-content {
       background: #fff; padding: 20px; border-radius: 8px;
-      width: 300px;
+      width: 350px;
     }
     .close { float: right; cursor: pointer; font-size: 20px; }
-    .variant-row { display: flex; justify-content: space-between; margin: 8px 0; }
+    .variant-row { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; }
     #order-summary { border: 1px solid #ddd; padding: 10px; min-height: 50px; background: #f9f9f9; }
+    button.add-btn { margin-left: 5px; }
   </style>
 </head>
 <body>
@@ -69,97 +70,68 @@
   </div>
 
   <script>
-    // === Product Data (30 products with slugified image names) ===
+    // === Product Data (all 30 products) ===
     const products = [
-      { name: "Margherita", image: "images/margherita.png", basePrice: 8600, variants: [
-        { size: "Medium", price: 8600 }, { size: "Large", price: 12200 }, { size: "X-Large", price: 17500 }] },
-
-      { name: "BBQ Meatball", image: "images/bbq-meatball.png", basePrice: 9600, variants: [
-        { size: "Medium", price: 9600 }, { size: "Large", price: 13400 }, { size: "X-Large", price: 18800 }] },
-
-      { name: "Pepperoni Supreme", image: "images/pepperoni-supreme.png", basePrice: 9600, variants: [
-        { size: "Medium", price: 9600 }, { size: "Large", price: 13400 }, { size: "X-Large", price: 18800 }] },
-
-      { name: "Southern Style BBQ Chicken", image: "images/southern-style-bbq-chicken.png", basePrice: 10500, variants: [
-        { size: "Medium", price: 10500 }, { size: "Large", price: 13900 }, { size: "X-Large", price: 19900 }] },
-
-      { name: "BBQ Chicken", image: "images/bbq-chicken.png", basePrice: 10050, variants: [
-        { size: "Medium", price: 10050 }, { size: "Large", price: 13900 }, { size: "X-Large", price: 19900 }] },
-
-      { name: "Chicken Suya", image: "images/chicken-suya.png", basePrice: 10050, variants: [
-        { size: "Medium", price: 10050 }, { size: "Large", price: 13900 }, { size: "X-Large", price: 19900 }] },
-
-      { name: "Chicken Supreme", image: "images/chicken-supreme.png", basePrice: 10050, variants: [
-        { size: "Medium", price: 10050 }, { size: "Large", price: 13900 }, { size: "X-Large", price: 19900 }] },
-
-      { name: "BBQ Mega Meat", image: "images/bbq-mega-meat.png", basePrice: 10500, variants: [
-        { size: "Medium", price: 10500 }, { size: "Large", price: 15400 }, { size: "X-Large", price: 21700 }] },
-
-      { name: "Shawarma", image: "images/shawarma.png", basePrice: 10500, variants: [
-        { size: "Medium", price: 10500 }, { size: "Large", price: 15400 }, { size: "X-Large", price: 21700 }] },
-
-      { name: "Naija Fiesta", image: "images/naija-fiesta.png", basePrice: 10500, variants: [
-        { size: "Medium", price: 10500 }, { size: "Large", price: 15400 }, { size: "X-Large", price: 21700 }] },
-
-      { name: "Cheesy Bread", image: "images/cheesy-bread.png", basePrice: 4000, variants: [
-        { size: "Standard", price: 4000 }] },
-
-      { name: "Cheesy Sausage Bread", image: "images/cheesy-sausage-bread.png", basePrice: 5000, variants: [
-        { size: "Standard", price: 5000 }] },
-
-      { name: "Cheesy Chicken Suya", image: "images/cheesy-chicken-suya.png", basePrice: 5000, variants: [
-        { size: "Standard", price: 5000 }] },
-
-      { name: "Cheesy Grilled Chicken", image: "images/cheesy-grilled-chicken.png", basePrice: 5000, variants: [
-        { size: "Standard", price: 5000 }] },
-
-      { name: "BBQ Sauce Calzone", image: "images/bbq-sauce-calzone.png", basePrice: 8000, variants: [
-        { size: "Standard", price: 8000 }] },
-
-      { name: "Pizza Sauce Calzone", image: "images/pizza-sauce-calzone.png", basePrice: 8000, variants: [
-        { size: "Standard", price: 8000 }] },
-
-      { name: "Suya Sauce Calzone", image: "images/suya-sauce-calzone.png", basePrice: 8000, variants: [
-        { size: "Standard", price: 8000 }] },
-
-      { name: "Roasted Chicken 2pcs", image: "images/roasted-chicken-2pcs.png", basePrice: 4000, variants: [
-        { size: "Standard", price: 4000 }] },
-
-      { name: "Roasted Chicken 5pcs", image: "images/roasted-chicken-5pcs.png", basePrice: 9000, variants: [
-        { size: "Standard", price: 9000 }] },
-
-      { name: "Jollof Rice with Roast Chicken", image: "images/jollof-rice-with-roast-chicken.png", basePrice: 2500, variants: [
-        { size: "Standard", price: 2500 }] },
-
-      { name: "Jollof Rice Only", image: "images/jollof-rice-only.png", basePrice: 1500, variants: [
-        { size: "Standard", price: 1500 }] },
-
-      { name: "Aquafina", image: "images/aquafina.png", basePrice: 800, variants: [
-        { size: "Bottle", price: 800 }] },
-
-      { name: "7up", image: "images/7up.png", basePrice: 800, variants: [
-        { size: "Bottle", price: 800 }] },
-
-      { name: "Pepsi", image: "images/pepsi.png", basePrice: 800, variants: [
-        { size: "Bottle", price: 800 }] },
-
-      { name: "Mirinda Orange", image: "images/mirinda-orange.png", basePrice: 800, variants: [
-        { size: "Bottle", price: 800 }] },
-
-      { name: "Teem Bitter Lemon", image: "images/teem-bitter-lemon.png", basePrice: 800, variants: [
-        { size: "Bottle", price: 800 }] },
-
-      { name: "Chicken Wings 4pcs", image: "images/chicken-wings-4pcs.png", basePrice: 4000, variants: [
-        { size: "Standard", price: 4000 }] },
-
-      { name: "Chicken Wings 7pcs", image: "images/chicken-wings-7pcs.png", basePrice: 7000, variants: [
-        { size: "Standard", price: 7000 }] },
-
-      { name: "French Vanilla", image: "images/french-vanilla.png", basePrice: 9900, variants: [
-        { size: "Standard", price: 9900 }] },
-
-      { name: "Cake Batter", image: "images/cake-batter.png", basePrice: 9900, variants: [
-        { size: "Standard", price: 9900 }] }
+      {name:"Margherita",image:"images/margherita.png",basePrice:8600,variants:[
+        {size:"Medium",price:8600},{size:"Large",price:12200},{size:"X-Large",price:17500}]},
+      {name:"BBQ MeatBall",image:"images/bbq-meatball.png",basePrice:9600,variants:[
+        {size:"Medium",price:9600},{size:"Large",price:13400},{size:"X-Large",price:18800}]},
+      {name:"Pepperoni Supreme",image:"images/pepperoni-supreme.png",basePrice:9600,variants:[
+        {size:"Medium",price:9600},{size:"Large",price:13400},{size:"X-Large",price:18800}]},
+      {name:"Southern Style BBQ Chicken",image:"images/southern-style-bbq-chicken.png",basePrice:10500,variants:[
+        {size:"Medium",price:10500},{size:"Large",price:13900},{size:"X-Large",price:19900}]},
+      {name:"BBQ Chicken",image:"images/bbq-chicken.png",basePrice:10050,variants:[
+        {size:"Medium",price:10050},{size:"Large",price:13900},{size:"X-Large",price:19900}]},
+      {name:"Chicken Suya",image:"images/chicken-suya.png",basePrice:10050,variants:[
+        {size:"Medium",price:10050},{size:"Large",price:13900},{size:"X-Large",price:19900}]},
+      {name:"Chicken Supreme",image:"images/chicken-supreme.png",basePrice:10050,variants:[
+        {size:"Medium",price:10050},{size:"Large",price:13900},{size:"X-Large",price:19900}]},
+      {name:"BBQ Mega Meat",image:"images/bbq-mega-meat.png",basePrice:10500,variants:[
+        {size:"Medium",price:10500},{size:"Large",price:15400},{size:"X-Large",price:21700}]},
+      {name:"Shawarma",image:"images/shawarma.png",basePrice:10500,variants:[
+        {size:"Medium",price:10500},{size:"Large",price:15400},{size:"X-Large",price:21700}]},
+      {name:"Naija Fiesta",image:"images/naija-fiesta.png",basePrice:10500,variants:[
+        {size:"Medium",price:10500},{size:"Large",price:15400},{size:"X-Large",price:21700}]},
+      {name:"Cheesy Bread",image:"images/cheesy-bread.png",basePrice:4000,variants:[
+        {size:"Standard",price:4000}]},
+      {name:"Cheesy Sausage Bread",image:"images/cheesy-sausage-bread.png",basePrice:5000,variants:[
+        {size:"Standard",price:5000}]},
+      {name:"Cheesy Chicken Suya",image:"images/cheesy-chicken-suya.png",basePrice:5000,variants:[
+        {size:"Standard",price:5000}]},
+      {name:"Cheesy Grilled Chicken",image:"images/cheesy-grilled-chicken.png",basePrice:5000,variants:[
+        {size:"Standard",price:5000}]},
+      {name:"BBQ Sauce Calzone",image:"images/bbq-sauce-calzone.png",basePrice:8000,variants:[
+        {size:"Standard",price:8000}]},
+      {name:"Pizza Sauce Calzone",image:"images/pizza-sauce-calzone.png",basePrice:8000,variants:[
+        {size:"Standard",price:8000}]},
+      {name:"Suya Sauce Calzone",image:"images/suya-sauce-calzone.png",basePrice:8000,variants:[
+        {size:"Standard",price:8000}]},
+      {name:"Roasted Chicken 2pcs",image:"images/roasted-chicken-2pcs.png",basePrice:4000,variants:[
+        {size:"2pcs",price:4000}]},
+      {name:"Roasted Chicken 5pcs",image:"images/roasted-chicken-5pcs.png",basePrice:9000,variants:[
+        {size:"5pcs",price:9000}]},
+      {name:"Jollof Rice with Roast Chicken",image:"images/jollof-rice-with-roast-chicken.png",basePrice:2500,variants:[
+        {size:"Plate",price:2500}]},
+      {name:"Jollof Rice Only",image:"images/jollof-rice-only.png",basePrice:1500,variants:[
+        {size:"Plate",price:1500}]},
+      {name:"Aquafina",image:"images/aquafina.png",basePrice:800,variants:[
+        {size:"Bottle",price:800}]},
+      {name:"7Up",image:"images/7up.png",basePrice:800,variants:[
+        {size:"Bottle",price:800}]},
+      {name:"Pepsi",image:"images/pepsi.png",basePrice:800,variants:[
+        {size:"Bottle",price:800}]},
+      {name:"Mirinda Orange",image:"images/mirinda-orange.png",basePrice:800,variants:[
+        {size:"Bottle",price:800}]},
+      {name:"Teem Bitter Lemon",image:"images/teem-bitter-lemon.png",basePrice:800,variants:[
+        {size:"Bottle",price:800}]},
+      {name:"Chicken Wings 4pcs",image:"images/chicken-wings-4pcs.png",basePrice:4000,variants:[
+        {size:"4pcs",price:4000}]},
+      {name:"Chicken Wings 7pcs",image:"images/chicken-wings-7pcs.png",basePrice:7000,variants:[
+        {size:"7pcs",price:7000}]},
+      {name:"French Vanilla",image:"images/french-vanilla.png",basePrice:9900,variants:[
+        {size:"Cup",price:9900}]},
+      {name:"Cake Batter",image:"images/cake-batter.png",basePrice:9900,variants:[
+        {size:"Cup",price:9900}]}
     ];
 
     // === DOM Elements ===
@@ -175,10 +147,8 @@
     const modalVariants = document.getElementById("modal-variants");
     const closeModal = document.getElementById("close-modal");
 
-    // === State ===
     let order = [];
 
-    // === Render Product Grid ===
     function renderProducts() {
       productGrid.innerHTML = "";
       products.forEach(p => {
@@ -194,26 +164,27 @@
       });
     }
 
-    // === Modal ===
     function openModal(product) {
       modal.style.display = "flex";
       modalImage.src = product.image;
       modalName.textContent = product.name;
       modalPrice.textContent = "From ₦" + product.basePrice.toLocaleString();
-
       modalVariants.innerHTML = "";
+
       product.variants.forEach(v => {
         const row = document.createElement("div");
         row.className = "variant-row";
         row.innerHTML = `
           <span>${v.size}</span>
           <span>₦${v.price.toLocaleString()}</span>
-          <input type="number" value="1" min="1" 
-            class="variant-qty" 
-            data-name="${product.name}" 
-            data-size="${v.size}" 
-            data-price="${v.price}">
+          <input type="number" value="1" min="1" class="variant-qty">
+          <button class="add-btn">Add</button>
         `;
+        row.querySelector(".add-btn").addEventListener("click", () => {
+          const qty = parseInt(row.querySelector(".variant-qty").value) || 1;
+          updateOrder(product.name, v.size, qty, v.price);
+          renderOrderSummary();
+        });
         modalVariants.appendChild(row);
       });
     }
@@ -221,28 +192,14 @@
     closeModal.onclick = () => (modal.style.display = "none");
     window.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
 
-    // === Update Order ===
-    modalVariants.addEventListener("change", e => {
-      if (e.target.classList.contains("variant-qty")) {
-        const qty = parseInt(e.target.value) || 1;
-        const productName = e.target.dataset.name;
-        const size = e.target.dataset.size;
-        const price = parseInt(e.target.dataset.price);
-
-        updateOrder(productName, size, qty, price);
-        renderOrderSummary();
-      }
-    });
-
     function updateOrder(name, size, qty, price) {
       const existing = order.find(i => i.name === name && i.size === size);
       if (existing) {
-        existing.quantity = qty;
-        existing.total = qty * price;
+        existing.quantity += qty;
+        existing.total = existing.quantity * price;
       } else {
         order.push({ name, size, quantity: qty, price, total: qty * price });
       }
-      order = order.filter(i => i.quantity > 0);
     }
 
     function renderOrderSummary() {
@@ -259,10 +216,8 @@
       totalPriceEl.textContent = totalPrice.toLocaleString();
     }
 
-    // === Submit Order ===
     document.getElementById("order-form").addEventListener("submit", e => {
       e.preventDefault();
-
       const orderData = {
         firstName: document.getElementById("first-name").value,
         lastName: document.getElementById("last-name").value,
@@ -270,7 +225,6 @@
         childClass: document.getElementById("class").value,
         items: order
       };
-
       fetch("https://script.google.com/macros/s/AKfycbyH7J0MIoMtvw9bB-Tf2ldBGvhu6KIssyZyM3HKWMYvqXgZrp5kklTudFrK8CxhlRuF/exec", {
         method: "POST",
         body: JSON.stringify(orderData),
@@ -280,7 +234,6 @@
         .then(data => {
           if (data.success) {
             alert("Order submitted successfully!");
-            window.location.href = "confirmation.html";
           } else {
             alert("Error: " + data.error);
           }
@@ -288,7 +241,6 @@
         .catch(err => alert("Network error: " + err));
     });
 
-    // === Init ===
     renderProducts();
   </script>
 </body>
