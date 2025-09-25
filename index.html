@@ -1,189 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pizza Order</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1, h2 { text-align: center; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    .product {
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 10px;
-      text-align: center;
-      background: #f9f9f9;
-      cursor: pointer;
-    }
-    .product img {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 10px;
-    }
-    .totals {
-      margin: 20px 0;
-      font-weight: bold;
-    }
-    form {
-      margin-top: 20px;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    form input {
-      display: block;
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 8px;
-    }
-    button {
-      padding: 10px 15px;
-      background: #28a745;
-      border: none;
-      color: #fff;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #218838;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #fafafa; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .card { background: white; border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .card img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; }
+    .popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+    .popup-content { background: white; padding: 20px; border-radius: 10px; max-width: 600px; width: 90%; display: flex; gap: 20px; }
+    .popup img { width: 200px; border-radius: 8px; }
+    .popup button { display: block; margin: 8px 0; width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; }
+    .popup button:hover { background: #f4f4f4; }
+    #summary { display: none; margin-top: 20px; }
+    #summary table { border-collapse: collapse; width: 100%; }
+    #summary td, #summary th { border: 1px solid #ccc; padding: 8px; }
+    .form { margin-top: 30px; }
+    .form input { display: block; margin: 10px 0; padding: 8px; width: 100%; }
+    .form button { padding: 10px 15px; }
   </style>
 </head>
 <body>
-  <h1>Pizza Order</h1>
+  <h1>Welcome!</h1>
 
-  <div class="grid" id="productsGrid"></div>
+  <div class="grid" id="productGrid"></div>
 
-  <div class="totals">
-    Total Quantity: <span id="totalQty">0</span><br>
-    Total Price: ₦<span id="totalPrice">0</span>
+  <div class="form">
+    <h3>Enter Your Details</h3>
+    <input type="text" id="name" placeholder="Name" required />
+    <input type="text" id="surname" placeholder="Surname" required />
+    <input type="text" id="phone" placeholder="Phone Number" required />
+    <input type="text" id="childClass" placeholder="Child's Class" required />
+    <button onclick="submitOrder()">Submit Order</button>
   </div>
 
-  <h2>Your Order</h2>
-  <div id="orderSummary"></div>
+  <div id="summary">
+    <h2>Order Summary</h2>
+    <table>
+      <tr><th>Name</th><td id="sName"></td></tr>
+      <tr><th>Surname</th><td id="sSurname"></td></tr>
+      <tr><th>Phone</th><td id="sPhone"></td></tr>
+      <tr><th>Child Class</th><td id="sChild"></td></tr>
+      <tr><th>Order Quantity</th><td id="sQty"></td></tr>
+      <tr><th>Total</th><td id="sTotal"></td></tr>
+      <tr><th>Amount to Pay</th><td id="sAmount"></td></tr>
+    </table>
+  </div>
 
-  <h2>Your Details</h2>
-  <form id="orderForm">
-    <input type="text" id="firstName" placeholder="First Name" required>
-    <input type="text" id="lastName" placeholder="Last Name" required>
-    <input type="text" id="phone" placeholder="Phone Number" required>
-    <input type="text" id="childClass" placeholder="Child's Class" required>
-    <button type="submit">Submit Order</button>
-  </form>
+  <!-- Popup -->
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <img id="popupImg" src="" alt="">
+      <div>
+        <h2 id="popupName"></h2>
+        <div id="popupOptions"></div>
+        <button onclick="closePopup()">Close</button>
+      </div>
+    </div>
+  </div>
 
-  <script>
-    const products = [
-      { name: "Margherita", prices: { standard: 8600, large: 12200, xlarge: 17500 }, img: "images/margherita.png" },
-      { name: "BBQ MeatBall", prices: { standard: 9600, large: 13400, xlarge: 18800 }, img: "images/bbq-meatball.png" },
-      { name: "Pepperoni Supreme", prices: { standard: 9600, large: 13400, xlarge: 18800 }, img: "images/pepperoni-supreme.png" },
-      { name: "Southern Style BBQ Chicken", prices: { standard: 10500, large: 13900, xlarge: 19900 }, img: "images/southern-style-bbq-chicken.png" },
-      { name: "BBQ Chicken", prices: { standard: 10050, large: 13900, xlarge: 19900 }, img: "images/bbq-chicken.png" },
-      { name: "Chicken Suya", prices: { standard: 10050, large: 13900, xlarge: 19900 }, img: "images/chicken-suya.png" },
-      { name: "Chicken Supreme", prices: { standard: 10050, large: 13900, xlarge: 19900 }, img: "images/chicken-supreme.png" },
-      { name: "BBQ Mega Meat", prices: { standard: 10500, large: 15400, xlarge: 21700 }, img: "images/bbq-mega-meat.png" },
-      { name: "Shawarma", prices: { standard: 10500, large: 15400, xlarge: 21700 }, img: "images/shawarma.png" },
-      { name: "Naija Fiesta", prices: { standard: 10500, large: 15400, xlarge: 21700 }, img: "images/naija-fiesta.png" },
-      { name: "Cheesy Bread", prices: { standard: 4000 }, img: "images/cheesy-bread.png" },
-      { name: "Cheesy Sauce Bread", prices: { standard: 5000 }, img: "images/cheesy-sauce-bread.png" },
-      { name: "Cheesy Chicken Suya", prices: { standard: 5000 }, img: "images/cheesy-chicken-suya.png" },
-      { name: "Cheesy Grilled Chicken", prices: { standard: 5000 }, img: "images/cheesy-grilled-chicken.png" },
-      { name: "BBQ Sauce Calzone", prices: { standard: 8000 }, img: "images/bbq-sauce-calzone.png" },
-      { name: "Pizza Sauce Calzone", prices: { standard: 8000 }, img: "images/pizza-sauce-calzone.png" },
-      { name: "Suya Sauce Calzone", prices: { standard: 8000 }, img: "images/suya-sauce-calzone.png" },
-      { name: "Roasted Chicken 2pcs", prices: { standard: 4000 }, img: "images/roasted-chicken-2pcs.png" },
-      { name: "Roasted Chicken 5pcs", prices: { standard: 9000 }, img: "images/roasted-chicken-5pcs.png" },
-      { name: "Jollof Rice with Roast Chicken", prices: { standard: 2500 }, img: "images/jollof-rice-with-roast-chicken.png" },
-      { name: "Jollof Rice Only", prices: { standard: 1500 }, img: "images/jollof-rice-only.png" },
-      { name: "Aquafina", prices: { standard: 800 }, img: "images/aquafina.png" },
-      { name: "7uP", prices: { standard: 800 }, img: "images/7up.png" },
-      { name: "Pepsi", prices: { standard: 800 }, img: "images/pepsi.png" },
-      { name: "Mirinda Orange", prices: { standard: 800 }, img: "images/mirinda-orange.png" },
-      { name: "Teem Bitter Lemon", prices: { standard: 800 }, img: "images/teem-bitter-lemon.png" },
-      { name: "Chicken Wings 4pcs", prices: { standard: 4000 }, img: "images/chicken-wings-4pcs.png" },
-      { name: "Chicken Wings 7pcs", prices: { standard: 7000 }, img: "images/chicken-wings-7pcs.png" },
-      { name: "French Vanilla", prices: { standard: 9900 }, img: "images/french-vanilla.png" },
-      { name: "Cake Batter", prices: { standard: 9900 }, img: "images/cake-batter.png" }
-    ];
+<script>
+const products = [
+  {name:"Margherita", img:"Margherita.PNG", sizes:{Medium:8600,Large:12200,"X-Large":17500}},
+  {name:"BBQ Meatball", img:"BBQ-MeatBall.PNG", sizes:{Medium:9600,Large:13400,"X-Large":18800}},
+  {name:"Pepperoni Supreme", img:"Pepperoni-Supreme.PNG", sizes:{Medium:9600,Large:13400,"X-Large":18800}},
+  {name:"Southern Style BBQ Chicken", img:"Southern-Style-BBQ-Chicken.PNG", sizes:{Medium:10500,Large:13900,"X-Large":19900}},
+  {name:"BBQ Chicken", img:"BBQ-Chicken.PNG", sizes:{Medium:10050,Large:13900,"X-Large":19900}},
+  {name:"Chicken Suya", img:"Chicken-Suya.PNG", sizes:{Medium:10050,Large:13900,"X-Large":19900}},
+  {name:"Chicken Supreme", img:"Chicken-Supreme.PNG", sizes:{Medium:10050,Large:13900,"X-Large":19900}},
+  {name:"BBQ Mega Meat", img:"BBQ-Mega-Meat.PNG", sizes:{Medium:10500,Large:15400,"X-Large":21700}},
+  {name:"Shawarma", img:"Shawarma.PNG", sizes:{Medium:10500,Large:15400,"X-Large":21700}},
+  {name:"Naija Fiesta", img:"Naija-Fiesta.PNG", sizes:{Medium:10500,Large:15400,"X-Large":21700}},
+  {name:"Cheesy Bread", img:"Cheesy-Bread.PNG", sizes:{Standard:4000}},
+  {name:"Cheesy Sausage Bread", img:"Cheesy-Sausage-Bread.PNG", sizes:{Standard:5000}},
+  {name:"Cheesy Chicken Suya", img:"Cheesy-Chicken-Suya.PNG", sizes:{Standard:5000}},
+  {name:"Cheesy Grilled Chicken", img:"Cheesy-Grilled-Chicken.PNG", sizes:{Standard:5000}},
+  {name:"BBQ Sauce Calzone", img:"BBQ-Sauce-Calzone.PNG", sizes:{Standard:8000}},
+  {name:"Pizza Sauce Calzone", img:"Pizza-Sauce-Calzone.PNG", sizes:{Standard:8000}},
+  {name:"Suya Sauce Calzone", img:"Suya-Sauce-Calzone.PNG", sizes:{Standard:8000}},
+  {name:"Roasted Chicken 2pcs", img:"Roasted-Chicken-2pcs.PNG", sizes:{Standard:4000}},
+  {name:"Roasted Chicken 5pcs", img:"Roasted-Chicken-5pcs.PNG", sizes:{Standard:9000}},
+  {name:"Jollof Rice with Roast Chicken", img:"Jollof-Rice-with-Roast-Chicken.PNG", sizes:{Standard:2500}},
+  {name:"Jollof Rice Only", img:"Jollof-Rice-Only.PNG", sizes:{Standard:1500}},
+  {name:"Aquafina", img:"Aquafina.PNG", sizes:{Standard:800}},
+  {name:"7up", img:"7uP.PNG", sizes:{Standard:800}},
+  {name:"Pepsi", img:"Pepsi.PNG", sizes:{Standard:800}},
+  {name:"Mirinda Orange", img:"Mirinda-Orange.PNG", sizes:{Standard:800}},
+  {name:"Teem Bitter Lemon", img:"Teem-Bitter-Lemon.PNG", sizes:{Standard:800}},
+  {name:"Chicken Wings 4pcs", img:"Chicken-Wings-4pcs.PNG", sizes:{Standard:4000}},
+  {name:"Chicken Wings 7pcs", img:"Chicken-Wings-7pcs.PNG", sizes:{Standard:7000}},
+  {name:"French Vanilla", img:"French-Vanilla.PNG", sizes:{Standard:9900}},
+  {name:"Cake Batter", img:"Cake-Batter.PNG", sizes:{Standard:9900}},
+];
 
-    let order = [];
-    const productsGrid = document.getElementById("productsGrid");
-    const totalQtyEl = document.getElementById("totalQty");
-    const totalPriceEl = document.getElementById("totalPrice");
-    const orderSummaryEl = document.getElementById("orderSummary");
+let cart = [];
 
-    // Render products
-    products.forEach((p, index) => {
-      const div = document.createElement("div");
-      div.className = "product";
-      div.innerHTML = `
-        <img src="${p.img}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <p>${Object.entries(p.prices).map(([size, price]) => size + ": ₦" + price).join("<br>")}</p>
-      `;
-      div.onclick = () => addToOrder(p);
-      productsGrid.appendChild(div);
+const grid = document.getElementById("productGrid");
+products.forEach((p,i)=>{
+  const card = document.createElement("div");
+  card.className="card";
+  card.innerHTML = `
+    <img src="${p.img}" alt="${p.name}">
+    <h4>${p.name}</h4>
+    <p>₦${Object.values(p.sizes)[0].toLocaleString()}</p>
+    <button onclick="openPopup(${i})">Select</button>
+  `;
+  grid.appendChild(card);
+});
+
+function openPopup(i){
+  const p = products[i];
+  document.getElementById("popupName").innerText = p.name;
+  document.getElementById("popupImg").src = p.img;
+  const opts = document.getElementById("popupOptions");
+  opts.innerHTML="";
+  for (let [size,price] of Object.entries(p.sizes)){
+    const btn = document.createElement("button");
+    btn.innerText = `${size} ₦${price.toLocaleString()}`;
+    btn.onclick=()=>{ 
+      cart.push({name:p.name,size,price});
+      alert(p.name+" ("+size+") added!");
+      closePopup();
+    };
+    opts.appendChild(btn);
+  }
+  document.getElementById("popup").style.display="flex";
+}
+
+function closePopup(){ document.getElementById("popup").style.display="none"; }
+
+async function submitOrder(){
+  const name=document.getElementById("name").value;
+  const surname=document.getElementById("surname").value;
+  const phone=document.getElementById("phone").value;
+  const childClass=document.getElementById("childClass").value;
+  const qty=cart.length;
+  const total=cart.reduce((a,b)=>a+b.price,0);
+
+  const order={name,surname,phone,childClass,cart,qty,total};
+
+  try{
+    const res=await fetch("https://script.google.com/macros/s/AKfycby5THVFsizWwJaIr2p_NUzwLzP9_TOW7NwqCADD8B5a0eoe-ouUk6Sbk5nzw9bfqNxu/exec",{
+      method:"POST",
+      body:JSON.stringify(order),
     });
-
-    function addToOrder(product) {
-      let size = "standard";
-      if (product.prices.large || product.prices.xlarge) {
-        size = prompt(`Enter size for ${product.name} (standard, large, xlarge):`, "standard");
-        if (!size || !product.prices[size]) return;
-      }
-      const qty = parseInt(prompt("Enter quantity:", "1"));
-      if (!qty || qty <= 0) return;
-
-      order.push({ ...product, size, qty, price: product.prices[size] });
-      updateSummary();
-    }
-
-    function updateSummary() {
-      let totalQty = 0;
-      let totalPrice = 0;
-      orderSummaryEl.innerHTML = "";
-      order.forEach(item => {
-        totalQty += item.qty;
-        totalPrice += item.qty * item.price;
-        orderSummaryEl.innerHTML += `<p>${item.qty} × ${item.name} (${item.size}) = ₦${item.qty * item.price}</p>`;
-      });
-      totalQtyEl.textContent = totalQty;
-      totalPriceEl.textContent = totalPrice;
-    }
-
-    document.getElementById("orderForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const data = {
-        firstName: document.getElementById("firstName").value,
-        lastName: document.getElementById("lastName").value,
-        phone: document.getElementById("phone").value,
-        childClass: document.getElementById("childClass").value,
-        order: JSON.stringify(order),
-        totalQty: totalQtyEl.textContent,
-        totalPrice: totalPriceEl.textContent
-      };
-
-      try {
-        const res = await fetch("YOUR_GOOGLE_SCRIPT_WEB_APP_URL", {
-          method: "POST",
-          body: JSON.stringify(data),
-          headers: { "Content-Type": "application/json" }
-        });
-        if (res.ok) {
-          alert("Order submitted successfully!");
-        } else {
-          alert("Error submitting order.");
-        }
-      } catch (err) {
-        alert("Failed to connect to server: " + err);
-      }
-    });
-  </script>
+    if(res.ok){
+      document.getElementById("sName").innerText=name;
+      document.getElementById("sSurname").innerText=surname;
+      document.getElementById("sPhone").innerText=phone;
+      document.getElementById("sChild").innerText=childClass;
+      document.getElementById("sQty").innerText=qty;
+      document.getElementById("sTotal").innerText="₦"+total.toLocaleString();
+      document.getElementById("sAmount").innerText="₦"+total.toLocaleString();
+      document.getElementById("summary").style.display="block";
+    } else { alert("Error submitting order."); }
+  } catch(e){
+    alert("Error submitting order.");
+  }
+}
+</script>
 </body>
 </html>
