@@ -2,273 +2,166 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Pizza Order</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gonzaga Pizza</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f7f7f7; }
-    h1 { text-align: center; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .card { background: #fff; border-radius: 8px; padding: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    .card img { width: 100%; border-radius: 8px; }
-    .order-summary { margin-top: 30px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; }
-    .modal-content { background:#fff; padding:20px; border-radius:8px; max-width:400px; width:100%; }
-    .variant-row { margin: 10px 0; }
-    .variant-btn { background: #eee; border: none; padding: 8px 12px; cursor: pointer; border-radius: 6px; }
-    .variant-action { margin-top: 8px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .product {
+      display: inline-block;
+      margin: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: 200px;
+      text-align: center;
+    }
+    .product img {
+      width: 100%;
+      height: auto;
+    }
+    #cartTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    #cartTable th, #cartTable td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    #orderForm {
+      margin-top: 20px;
+    }
+    #orderForm input {
+      display: block;
+      margin-bottom: 10px;
+      padding: 8px;
+      width: 300px;
+    }
   </style>
 </head>
 <body>
 
-<h1>Pizza Order</h1>
+  <h1>🍕 Gonzaga Pizza Ordering</h1>
 
-<div class="grid" id="productGrid"></div>
+  <div id="products">
+    <div class="product">
+      <img src="french-vanilla.png" alt="French Vanilla">
+      <h3>French Vanilla</h3>
+      <p>From ₦9,900</p>
+      <button onclick="addToCart('French Vanilla','Standard',9900)">Add</button>
+    </div>
 
-<div class="order-summary">
-  <h2>Order Summary</h2>
-  <table id="summaryTable">
-    <thead>
-      <tr><th>Item</th><th>Variant</th><th>Qty</th><th>Price</th><th>Total</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <p><strong>Total: ₦<span id="grandTotal">0</span></strong></p>
-  <h3>Customer Info</h3>
-  <input type="text" id="firstName" placeholder="First Name"><br><br>
-  <input type="text" id="lastName" placeholder="Last Name"><br><br>
-  <input type="text" id="phone" placeholder="Phone Number"><br><br>
-  <input type="text" id="childClass" placeholder="Child's Class"><br><br>
-  <button id="submitBtn">Submit Order</button>
-</div>
-
-<!-- Modal -->
-<div class="modal" id="variantModal">
-  <div class="modal-content">
-    <h3 id="modalName"></h3>
-    <img id="modalImage" src="" alt="" style="width:100%; border-radius:8px;">
-    <p id="modalPrice"></p>
-    <div id="modalVariants"></div>
-    <button onclick="closeModal()">Close</button>
+    <div class="product">
+      <img src="chicken-wings-7pcs.png" alt="Chicken Wings 7pcs">
+      <h3>Chicken Wings 7pcs</h3>
+      <p>From ₦7,000</p>
+      <button onclick="addToCart('Chicken Wings 7pcs','Standard',7000)">Add</button>
+    </div>
   </div>
-</div>
 
-<script>
-  // ✅ Replace this with your deployed Web App URL
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxX8hbTbG2LMfLw594S8pU0Z--GVUzw9OMtCJtxmO0grjKhP82LzHNELlJX9nRf9NMJ/exec";
+  <h2>Order Summary</h2>
+  <table id="cartTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Variant</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="cartBody"></tbody>
+  </table>
+  <p><strong>Total: ₦<span id="cartTotal">0</span></strong></p>
 
-  const products = [
-    { name: "Margherita", image: "images/margherita.png", basePrice: 8600, variants: [
-      { size: "Medium", price: 8600 }, { size: "Large", price: 12200 }, { size: "X-Large", price: 17500 }
-    ]},
-    { name: "BBQ MeatBall", image: "images/bbq-meatball.png", basePrice: 9600, variants: [
-      { size: "Medium", price: 9600 }, { size: "Large", price: 13400 }, { size: "X-Large", price: 18800 }
-    ]},
-    { name: "Pepperoni Supreme", image: "images/pepperoni-supreme.png", basePrice: 9600, variants: [
-      { size: "Medium", price: 9600 }, { size: "Large", price: 13400 }, { size: "X-Large", price: 18800 }
-    ]},
-    { name: "Southern Style BBQ Chicken", image: "images/southern-style-bbq-chicken.png", basePrice: 10500, variants: [
-      { size: "Medium", price: 10500 }, { size: "Large", price: 13900 }, { size: "X-Large", price: 19900 }
-    ]},
-    { name: "BBQ Chicken", image: "images/bbq-chicken.png", basePrice: 10050, variants: [
-      { size: "Medium", price: 10050 }, { size: "Large", price: 13900 }, { size: "X-Large", price: 19900 }
-    ]},
-    { name: "Chicken Suya", image: "images/chicken-suya.png", basePrice: 10050, variants: [
-      { size: "Medium", price: 10050 }, { size: "Large", price: 13900 }, { size: "X-Large", price: 19900 }
-    ]},
-    { name: "Chicken Supreme", image: "images/chicken-supreme.png", basePrice: 10050, variants: [
-      { size: "Medium", price: 10050 }, { size: "Large", price: 13900 }, { size: "X-Large", price: 19900 }
-    ]},
-    { name: "BBQ Mega Meat", image: "images/bbq-mega-meat.png", basePrice: 10500, variants: [
-      { size: "Medium", price: 10500 }, { size: "Large", price: 15400 }, { size: "X-Large", price: 21700 }
-    ]},
-    { name: "Shawarma", image: "images/shawarma.png", basePrice: 10500, variants: [
-      { size: "Medium", price: 10500 }, { size: "Large", price: 15400 }, { size: "X-Large", price: 21700 }
-    ]},
-    { name: "Naija Fiesta", image: "images/naija-fiesta.png", basePrice: 10500, variants: [
-      { size: "Medium", price: 10500 }, { size: "Large", price: 15400 }, { size: "X-Large", price: 21700 }
-    ]},
-    { name: "Cheesy Bread", image: "images/cheesy-bread.png", basePrice: 4000, variants: [
-      { size: "Standard", price: 4000 }
-    ]},
-    { name: "Cheesy Sausage Bread", image: "images/cheesy-sausage-bread.png", basePrice: 5000, variants: [
-      { size: "Standard", price: 5000 }
-    ]},
-    { name: "Cheesy Chicken Suya", image: "images/cheesy-chicken-suya.png", basePrice: 5000, variants: [
-      { size: "Standard", price: 5000 }
-    ]},
-    { name: "Cheesy Grilled Chicken", image: "images/cheesy-grilled-chicken.png", basePrice: 5000, variants: [
-      { size: "Standard", price: 5000 }
-    ]},
-    { name: "BBQ Sauce Calzone", image: "images/bbq-sauce-calzone.png", basePrice: 8000, variants: [
-      { size: "Standard", price: 8000 }
-    ]},
-    { name: "Pizza Sauce Calzone", image: "images/pizza-sauce-calzone.png", basePrice: 8000, variants: [
-      { size: "Standard", price: 8000 }
-    ]},
-    { name: "Suya Sauce Calzone", image: "images/suya-sauce-calzone.png", basePrice: 8000, variants: [
-      { size: "Standard", price: 8000 }
-    ]},
-    { name: "Roasted Chicken 2pcs", image: "images/roasted-chicken-2pcs.png", basePrice: 4000, variants: [
-      { size: "Standard", price: 4000 }
-    ]},
-    { name: "Roasted Chicken 5pcs", image: "images/roasted-chicken-5pcs.png", basePrice: 9000, variants: [
-      { size: "Standard", price: 9000 }
-    ]},
-    { name: "Jollof Rice with Roast Chicken", image: "images/jollof-rice-with-roast-chicken.png", basePrice: 2500, variants: [
-      { size: "Standard", price: 2500 }
-    ]},
-    { name: "Jollof Rice Only", image: "images/jollof-rice-only.png", basePrice: 1500, variants: [
-      { size: "Standard", price: 1500 }
-    ]},
-    { name: "Aquafina", image: "images/aquafina.png", basePrice: 800, variants: [
-      { size: "Standard", price: 800 }
-    ]},
-    { name: "7up", image: "images/7up.png", basePrice: 800, variants: [
-      { size: "Standard", price: 800 }
-    ]},
-    { name: "Pepsi", image: "images/pepsi.png", basePrice: 800, variants: [
-      { size: "Standard", price: 800 }
-    ]},
-    { name: "Mirinda Orange", image: "images/mirinda-orange.png", basePrice: 800, variants: [
-      { size: "Standard", price: 800 }
-    ]},
-    { name: "Teem Bitter Lemon", image: "images/teem-bitter-lemon.png", basePrice: 800, variants: [
-      { size: "Standard", price: 800 }
-    ]},
-    { name: "Chicken Wings 4pcs", image: "images/chicken-wings-4pcs.png", basePrice: 4000, variants: [
-      { size: "Standard", price: 4000 }
-    ]},
-    { name: "Chicken Wings 7pcs", image: "images/chicken-wings-7pcs.png", basePrice: 7000, variants: [
-      { size: "Standard", price: 7000 }
-    ]},
-    { name: "French Vanilla", image: "images/french-vanilla.png", basePrice: 9900, variants: [
-      { size: "Standard", price: 9900 }
-    ]},
-    { name: "Cake Batter", image: "images/cake-batter.png", basePrice: 9900, variants: [
-      { size: "Standard", price: 9900 }
-    ]}
-  ];
+  <h2>Customer Info</h2>
+  <form id="orderForm">
+    <label>First Name:<br><input type="text" id="firstName" required></label><br>
+    <label>Last Name:<br><input type="text" id="lastName" required></label><br>
+    <label>Phone Number:<br><input type="text" id="phone" required></label><br>
+    <label>Child’s Class:<br><input type="text" id="childClass" required></label><br>
+    <button type="submit">Submit Order</button>
+  </form>
 
-  const grid = document.getElementById("productGrid");
-  const modal = document.getElementById("variantModal");
-  const modalImage = document.getElementById("modalImage");
-  const modalName = document.getElementById("modalName");
-  const modalPrice = document.getElementById("modalPrice");
-  const modalVariants = document.getElementById("modalVariants");
+  <script>
+    let cart = [];
 
-  let order = [];
-
-  function renderProducts() {
-    products.forEach(p => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `<img src="${p.image}" alt="${p.name}"><h4>${p.name}</h4><p>From ₦${p.basePrice.toLocaleString()}</p>`;
-      card.onclick = () => openModal(p);
-      grid.appendChild(card);
-    });
-  }
-
-  function openModal(product) {
-    modal.style.display = "flex";
-    modalImage.src = product.image;
-    modalName.textContent = product.name;
-    modalPrice.textContent = "From ₦" + product.basePrice.toLocaleString();
-    modalVariants.innerHTML = "";
-
-    product.variants.forEach(v => {
-      const row = document.createElement("div");
-      row.className = "variant-row";
-      row.innerHTML = `
-        <button class="variant-btn">${v.size} - ₦${v.price.toLocaleString()}</button>
-        <div class="variant-action" style="display:none;">
-          <input type="number" value="1" min="1" class="variant-qty">
-          <button class="add-btn">Add</button>
-        </div>
-      `;
-      const btn = row.querySelector(".variant-btn");
-      const action = row.querySelector(".variant-action");
-      const addBtn = row.querySelector(".add-btn");
-      const qtyInput = row.querySelector(".variant-qty");
-
-      btn.addEventListener("click", () => {
-        modalVariants.querySelectorAll(".variant-action").forEach(el => el.style.display = "none");
-        action.style.display = "block";
-      });
-
-      addBtn.addEventListener("click", () => {
-        const qty = parseInt(qtyInput.value) || 1;
-        updateOrder(product.name, v.size, qty, v.price);
-        renderOrderSummary();
-        modal.style.display = "none";
-      });
-
-      modalVariants.appendChild(row);
-    });
-  }
-
-  function closeModal() { modal.style.display = "none"; }
-
-  function updateOrder(name, size, qty, price) {
-    const existing = order.find(o => o.name === name && o.size === size);
-    if (existing) existing.qty += qty;
-    else order.push({ name, size, qty, price });
-  }
-
-  function renderOrderSummary() {
-    const tbody = document.querySelector("#summaryTable tbody");
-    tbody.innerHTML = "";
-    let total = 0;
-    order.forEach(o => {
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${o.name}</td><td>${o.size}</td><td>${o.qty}</td><td>₦${o.price.toLocaleString()}</td><td>₦${(o.qty*o.price).toLocaleString()}</td>`;
-      tbody.appendChild(row);
-      total += o.qty * o.price;
-    });
-    document.getElementById("grandTotal").textContent = total.toLocaleString();
-  }
-
-  document.getElementById("submitBtn").addEventListener("submit", function(e) {
-  e.preventDefault();
-
-  const order = {
-    name: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    address: document.getElementById("address").value,
-    items: cart,
-    total: calculateTotal()
-  };
-
-  console.log("Submitting order:", order);
-
-  fetch("https://script.google.com/macros/s/AKfycbyH7J0MIoMtvw9bB-Tf2ldBGvhu6KIssyZyM3HKWMYvqXgZrp5kklTudFrK8CxhlRuF/exec", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(order)
-  })
-  .then(async (res) => {
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error("HTTP " + res.status + " - " + text);
+    function addToCart(item, variant, price) {
+      const existing = cart.find(p => p.item === item && p.variant === variant);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ item, variant, qty: 1, price });
+      }
+      renderCart();
     }
-    return res.json();
-  })
-  .then(data => {
-    console.log("Response from Apps Script:", data);
-    if (data.result === "success") {
-      alert("✅ Order submitted successfully!");
-      window.location.href = "confirmation.html";
-    } else {
-      alert("⚠️ Error from server: " + data.message);
+
+    function renderCart() {
+      const cartBody = document.getElementById("cartBody");
+      cartBody.innerHTML = "";
+      let total = 0;
+      cart.forEach(p => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${p.item}</td>
+          <td>${p.variant}</td>
+          <td>${p.qty}</td>
+          <td>₦${p.price}</td>
+          <td>₦${p.qty * p.price}</td>
+        `;
+        cartBody.appendChild(row);
+        total += p.qty * p.price;
+      });
+      document.getElementById("cartTotal").innerText = total;
     }
-  })
-  .catch(err => {
-    console.error("Detailed fetch error:", err);
-    alert("❌ Error submitting order: " + err.message);
-  });
-});
 
-</script>
+    function calculateTotal() {
+      return cart.reduce((sum, p) => sum + p.qty * p.price, 0);
+    }
 
+    document.getElementById("orderForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const order = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        phone: document.getElementById("phone").value,
+        childClass: document.getElementById("childClass").value,
+        items: cart,
+        total: calculateTotal()
+      };
+
+      console.log("Submitting order:", order);
+
+      fetch("https://script.google.com/macros/s/AKfycbyH7J0MIoMtvw9bB-Tf2ldBGvhu6KIssyZyM3HKWMYvqXgZrp5kklTudFrK8CxhlRuF/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(order)
+      })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error("HTTP " + res.status + " - " + text);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log("Response from Apps Script:", data);
+        if (data.result === "success") {
+          alert("✅ Order submitted successfully!");
+          window.location.href = "confirmation.html";
+        } else {
+          alert("⚠️ Error from server: " + data.message);
+        }
+      })
+      .catch(err => {
+        console.error("Detailed fetch error:", err);
+        alert("❌ Error submitting order: " + err.message);
+      });
+    });
+  </script>
 </body>
 </html>
