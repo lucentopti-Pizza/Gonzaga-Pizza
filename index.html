@@ -1,167 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>Gonzaga Pizza</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    .product {
-      display: inline-block;
-      margin: 10px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      width: 200px;
-      text-align: center;
-    }
-    .product img {
-      width: 100%;
-      height: auto;
-    }
-    #cartTable {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    #cartTable th, #cartTable td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-    #orderForm {
-      margin-top: 20px;
-    }
-    #orderForm input {
-      display: block;
-      margin-bottom: 10px;
-      padding: 8px;
-      width: 300px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card { border: 1px solid #ccc; border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; }
+    .card img { width: 100%; max-height: 150px; object-fit: cover; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+    .modal-content { background: white; padding: 20px; border-radius: 8px; width: 400px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    .summary { margin-top: 30px; }
   </style>
 </head>
 <body>
+  <h1>Gonzaga Pizza</h1>
 
-  <h1>🍕 Gonzaga Pizza Ordering</h1>
+  <div class="grid" id="productGrid"></div>
 
-  <div id="products">
-    <div class="product">
-      <img src="french-vanilla.png" alt="French Vanilla">
-      <h3>French Vanilla</h3>
-      <p>From ₦9,900</p>
-      <button onclick="addToCart('French Vanilla','Standard',9900)">Add</button>
-    </div>
-
-    <div class="product">
-      <img src="chicken-wings-7pcs.png" alt="Chicken Wings 7pcs">
-      <h3>Chicken Wings 7pcs</h3>
-      <p>From ₦7,000</p>
-      <button onclick="addToCart('Chicken Wings 7pcs','Standard',7000)">Add</button>
+  <!-- Modal -->
+  <div id="productModal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalName"></h2>
+      <img id="modalImage" src="" alt="" style="max-width:100%;height:auto;" />
+      <div id="variantOptions"></div>
+      <div style="margin-top:15px;">
+        <label>Quantity:</label>
+        <input type="number" id="variantQty" value="1" min="1" />
+      </div>
+      <button onclick="addToOrder()">Add to Order</button>
+      <button onclick="closeModal()">Close</button>
     </div>
   </div>
 
-  <h2>Order Summary</h2>
-  <table id="cartTable">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Variant</th>
-        <th>Qty</th>
-        <th>Price</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-    <tbody id="cartBody"></tbody>
-  </table>
-  <p><strong>Total: ₦<span id="cartTotal">0</span></strong></p>
+  <!-- Order Summary -->
+  <div class="summary">
+    <h2>Order Summary</h2>
+    <table id="orderTable">
+      <thead>
+        <tr><th>Item</th><th>Variant</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p><strong>Total: ₦<span id="orderTotal">0</span></strong></p>
 
-  <h2>Customer Info</h2>
-  <form id="orderForm">
-    <label>First Name:<br><input type="text" id="firstName" required></label><br>
-    <label>Last Name:<br><input type="text" id="lastName" required></label><br>
-    <label>Phone Number:<br><input type="text" id="phone" required></label><br>
-    <label>Child’s Class:<br><input type="text" id="childClass" required></label><br>
-    <button type="submit">Submit Order</button>
-  </form>
+    <h3>Customer Info</h3>
+    <input id="firstName" placeholder="First Name" /><br />
+    <input id="lastName" placeholder="Last Name" /><br />
+    <input id="phone" placeholder="Phone" /><br />
+    <input id="childClass" placeholder="Child's Class" /><br />
+    <button onclick="submitOrder()">Submit Order</button>
+  </div>
 
   <script>
-    let cart = [];
+    const products = [
+      { name: "Margherita", image: "images/margherita.png", variants: { Medium: 8600, Large: 12200, "X-Large": 17500 }},
+      { name: "BBQ Meatball", image: "images/bbq-meatball.png", variants: { Medium: 9600, Large: 13400, "X-Large": 18800 }},
+      { name: "Pepperoni Supreme", image: "images/pepperoni-supreme.png", variants: { Medium: 9600, Large: 13400, "X-Large": 18800 }},
+      { name: "Southern Style BBQ Chicken", image: "images/southern-style-bbq-chicken.png", variants: { Medium: 10500, Large: 13900, "X-Large": 19900 }},
+      { name: "BBQ Chicken", image: "images/bbq-chicken.png", variants: { Medium: 10050, Large: 13900, "X-Large": 19900 }},
+      { name: "Chicken Suya", image: "images/chicken-suya.png", variants: { Medium: 10050, Large: 13900, "X-Large": 19900 }},
+      { name: "Chicken Supreme", image: "images/chicken-supreme.png", variants: { Medium: 10050, Large: 13900, "X-Large": 19900 }},
+      { name: "BBQ Mega Meat", image: "images/bbq-mega-meat.png", variants: { Medium: 10500, Large: 15400, "X-Large": 21700 }},
+      { name: "Shawarma", image: "images/shawarma.png", variants: { Medium: 10500, Large: 15400, "X-Large": 21700 }},
+      { name: "Naija Fiesta", image: "images/naija-fiesta.png", variants: { Medium: 10500, Large: 15400, "X-Large": 21700 }},
+      { name: "Cheesy Bread", image: "images/cheesy-bread.png", variants: { Standard: 4000 }},
+      { name: "Cheesy Sausage Bread", image: "images/cheesy-sausage-bread.png", variants: { Standard: 5000 }},
+      { name: "Cheesy Chicken Suya", image: "images/cheesy-chicken-suya.png", variants: { Standard: 5000 }},
+      { name: "Cheesy Grilled Chicken", image: "images/cheesy-grilled-chicken.png", variants: { Standard: 5000 }},
+      { name: "BBQ Sauce Calzone", image: "images/bbq-sauce-calzone.png", variants: { Standard: 8000 }},
+      { name: "Pizza Sauce Calzone", image: "images/pizza-sauce-calzone.png", variants: { Standard: 8000 }},
+      { name: "Suya Sauce Calzone", image: "images/suya-sauce-calzone.png", variants: { Standard: 8000 }},
+      { name: "Roasted Chicken 2pcs", image: "images/roasted-chicken-2pcs.png", variants: { Standard: 4000 }},
+      { name: "Roasted Chicken 5pcs", image: "images/roasted-chicken-5pcs.png", variants: { Standard: 9000 }},
+      { name: "Jollof Rice with Roast Chicken", image: "images/jollof-rice-with-roast-chicken.png", variants: { Standard: 2500 }},
+      { name: "Jollof Rice Only", image: "images/jollof-rice-only.png", variants: { Standard: 1500 }},
+      { name: "Aquafina", image: "images/aquafina.png", variants: { Standard: 800 }},
+      { name: "7up", image: "images/7up.png", variants: { Standard: 800 }},
+      { name: "Pepsi", image: "images/pepsi.png", variants: { Standard: 800 }},
+      { name: "Mirinda Orange", image: "images/mirinda-orange.png", variants: { Standard: 800 }},
+      { name: "Teem Bitter Lemon", image: "images/teem-bitter-lemon.png", variants: { Standard: 800 }},
+      { name: "Chicken Wings 4pcs", image: "images/chicken-wings-4pcs.png", variants: { Standard: 4000 }},
+      { name: "Chicken Wings 7pcs", image: "images/chicken-wings-7pcs.png", variants: { Standard: 7000 }},
+      { name: "French Vanilla", image: "images/french-vanilla.png", variants: { Standard: 9900 }},
+      { name: "Cake Batter", image: "images/cake-batter.png", variants: { Standard: 9900 }}
+    ];
 
-    function addToCart(item, variant, price) {
-      const existing = cart.find(p => p.item === item && p.variant === variant);
-      if (existing) {
-        existing.qty++;
-      } else {
-        cart.push({ item, variant, qty: 1, price });
+    const grid = document.getElementById("productGrid");
+    const modal = document.getElementById("productModal");
+    const modalName = document.getElementById("modalName");
+    const modalImage = document.getElementById("modalImage");
+    const variantOptions = document.getElementById("variantOptions");
+    const variantQty = document.getElementById("variantQty");
+    let currentProduct = null, currentVariant = null;
+
+    const order = [];
+
+    // Render grid
+    products.forEach((p, idx) => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `<img src="${p.image}" alt="${p.name}" /><h3>${p.name}</h3><p>From ₦${Object.values(p.variants)[0]}</p>`;
+      div.onclick = () => openModal(p);
+      grid.appendChild(div);
+    });
+
+    function openModal(product) {
+      currentProduct = product;
+      modalName.textContent = product.name;
+      modalImage.src = product.image;
+      variantOptions.innerHTML = "";
+      for (const [name, price] of Object.entries(product.variants)) {
+        const btn = document.createElement("button");
+        btn.textContent = `${name} ₦${price}`;
+        btn.onclick = () => { currentVariant = { name, price }; };
+        variantOptions.appendChild(btn);
       }
-      renderCart();
+      variantQty.value = 1;
+      modal.style.display = "flex";
     }
 
-    function renderCart() {
-      const cartBody = document.getElementById("cartBody");
-      cartBody.innerHTML = "";
-      let total = 0;
-      cart.forEach(p => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${p.item}</td>
-          <td>${p.variant}</td>
-          <td>${p.qty}</td>
-          <td>₦${p.price}</td>
-          <td>₦${p.qty * p.price}</td>
-        `;
-        cartBody.appendChild(row);
-        total += p.qty * p.price;
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    function addToOrder() {
+      if (!currentProduct || !currentVariant) return;
+      const qty = parseInt(variantQty.value) || 1;
+      order.push({
+        name: currentProduct.name,
+        variant: currentVariant.name,
+        qty,
+        price: currentVariant.price
       });
-      document.getElementById("cartTotal").innerText = total;
+      renderOrder();
+      closeModal();
     }
 
-    function calculateTotal() {
-      return cart.reduce((sum, p) => sum + p.qty * p.price, 0);
+    function renderOrder() {
+      const tbody = document.querySelector("#orderTable tbody");
+      tbody.innerHTML = "";
+      let total = 0;
+      order.forEach(item => {
+        const row = document.createElement("tr");
+        const subtotal = item.price * item.qty;
+        row.innerHTML = `<td>${item.name}</td><td>${item.variant}</td><td>${item.qty}</td><td>₦${item.price}</td><td>₦${subtotal}</td>`;
+        tbody.appendChild(row);
+        total += subtotal;
+      });
+      document.getElementById("orderTotal").textContent = total;
     }
 
-    document.getElementById("orderForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const order = {
+    async function submitOrder() {
+      const data = {
         firstName: document.getElementById("firstName").value,
         lastName: document.getElementById("lastName").value,
         phone: document.getElementById("phone").value,
         childClass: document.getElementById("childClass").value,
-        items: cart,
-        total: calculateTotal()
+        items: order,
+        total: document.getElementById("orderTotal").textContent
       };
 
-      console.log("Submitting order:", order);
+      console.log("Submitting order:", data);
 
-      fetch("https://script.google.com/macros/s/AKfycbyH7J0MIoMtvw9bB-Tf2ldBGvhu6KIssyZyM3HKWMYvqXgZrp5kklTudFrK8CxhlRuF/exec", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(order)
-      })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error("HTTP " + res.status + " - " + text);
-        }
-        return res.json();
-      })
-      .then(data => {
-        console.log("Response from Apps Script:", data);
-        if (data.result === "success") {
-          alert("✅ Order submitted successfully!");
-          window.location.href = "confirmation.html";
-        } else {
-          alert("⚠️ Error from server: " + data.message);
-        }
-      })
-      .catch(err => {
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbyH7J0MIoMtvw9bB-Tf2ldBGvhu6KIssyZyM3HKWMYvqXgZrp5kklTudFrK8CxhlRuF/exec", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+          mode: "cors"
+        });
+        const json = await res.json();
+        alert("Order submitted!");
+      } catch (err) {
         console.error("Detailed fetch error:", err);
-        alert("❌ Error submitting order: " + err.message);
-      });
-    });
+        alert("Error submitting order: " + err.message);
+      }
+    }
   </script>
 </body>
 </html>
